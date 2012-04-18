@@ -17,12 +17,29 @@ a = read.table('table', header=T)
 
 a$times = a$stop - a$start
 
-comb = unique(a[,c('request', 'instance')])
+# assume start time is the same for all nodes in a multinode request
+comb = unique(a[,c('request', 'instance', 'start')])
 
-cat(paste('request', 'instance', 'min', 'median', '1st_oct', '7th_oct', sep='\t'), '\n')
+b = list()
+
+request = c()
+instance = c()
+start = c()
+maxes = c()
+nodes = c()
+
+cat(paste('request', 'instance', 'nodes', 'start_time', 'max_time', sep='\t'), '\n')
 
 for(i in 1:length(comb[,1])){
-      times = a$times[a$instance == comb[i,2] & a$request == comb[i,1]]
-      oct = octiles(times)
-      cat(paste(comb[i,1], comb[i,2], min(times), oct[4], oct[1], oct[7], sep='\t'), '\n')
+      times = a$times[a$instance == comb[i,2] & a$request == comb[i,1] & a$start == comb[i,3]]
+      request[i] = as.character(comb[i,1])
+      instance[i] = as.character(comb[i,2])
+      start[i] = comb[i,3]
+      maxes[i] = max(times)
+      nodes[i] = length(times)
+      cat(paste(request[i], instance[i], nodes[i], start[i], maxes[i], sep='\t'), '\n')
 }
+
+#cat(paste('request', 'instance', 'count', 'start_time', 'min', 'median', '1st_oct', '7th_oct', sep='\t'), '\n')
+#oct = octiles(times)
+#cat(paste(comb[i,1], comb[i,2], length(times), comb[i,3], min(times), oct[4], oct[1], oct[7], sep='\t'), '\n')
