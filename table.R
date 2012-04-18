@@ -28,7 +28,6 @@ start = c()
 maxes = c()
 nodes = c()
 
-cat(paste('request', 'instance', 'nodes', 'start_time', 'max_time', sep='\t'), '\n')
 
 for(i in 1:length(comb[,1])){
       times = a$times[a$instance == comb[i,2] & a$request == comb[i,1] & a$start == comb[i,3]]
@@ -37,7 +36,15 @@ for(i in 1:length(comb[,1])){
       start[i] = comb[i,3]
       maxes[i] = max(times)
       nodes[i] = length(times)
-      cat(paste(request[i], instance[i], nodes[i], start[i], maxes[i], sep='\t'), '\n')
+}
+
+b = data.frame(request, instance, nodes, start, max_time = maxes)
+o = order(b$instance, b$nodes, b$max_time)
+b = b[o,]
+
+cat(paste('request', 'instance', 'nodes', 'start_time', 'max_time', sep='\t'), '\n')
+for(i in 1:length(b[,1])){
+      cat(paste(b$request[i], b$instance[i], b$nodes[i], b$start[i], b$max_time[i], sep='\t'), '\n')
 }
 
 #cat(paste('request', 'instance', 'count', 'start_time', 'min', 'median', '1st_oct', '7th_oct', sep='\t'), '\n')
