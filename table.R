@@ -13,7 +13,27 @@ octiles = function(input){
   return(med);
 }
 
+#######################
+# execution and allocation times
+########################
+w = read.table('wtable', sep=';', header=T)
+w = w[order(w$App, w$System),]
+
+# example barplot
+bt = w[w$App == 'BT',]
+btMatrix = t(as.matrix(bt[,c('Queuing_Delay','Execution')]))
+btMatrix = log(btMatrix)
+barplot(btMatrix, names.arg = bt$System,
+        main=paste('Execution + queueing delay for ', bt$App[1]),
+        legend.text = c('Queueing delay', 'Execution'),
+        ylab='log seconds',
+        xlab='System')
+
+########################
+# allocation times
+########################
 a = read.table('table', header=T)
+
 
 a$times = a$stop - a$start
 
