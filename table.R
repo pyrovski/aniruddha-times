@@ -22,7 +22,7 @@ w = w[order(w$App, w$System),]
 # example barplot
 bt = w[w$App == 'BT',]
 btMatrix = t(as.matrix(bt[,c('Queuing_Delay','Execution')]))
-btMatrix = log(btMatrix)
+btMatrix = log10(btMatrix)
 barplot(btMatrix, names.arg = bt$System,
         main=paste('Execution + queueing delay for ', bt$App[1]),
         legend.text = c('Queueing delay', 'Execution'),
