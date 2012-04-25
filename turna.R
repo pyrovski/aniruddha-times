@@ -29,10 +29,26 @@ appList = c(nasApps, otherApps)
 # shorten system names
 a$System = factor(toupper(substr(a$System, 1, 1)))
 
-systems = unique(a$System)
+# scale to CC8 times
+sa = a
+for(row in 1:length(a$App)){
+	 num_sel = row
+	 denom_sel = which(sa$App == sa$App[row] & sa$System == 'C' & sa$type == sa$type[row])
+	 sa$Queueing_Delay[num_sel] = sa$Queueing_Delay[num_sel] / sa$Queueing_Delay[denom_sel]
+	 sa$Execution[num_sel] = sa$Execution[num_sel] / sa$Execution[denom_sel]
+}
+
+# remove CC8 times
+sa = sa[sa$System != 'C',]
+
+systems = unique(sa$System)
 numApps = length(appList)
 
-ma = melt(a[,c('App','System','type','Execution','Queueing_Delay')], id.vars=c('App','System','type'))
+ma = melt(sa[,c('App','System','type','Execution','Queueing_Delay')], id.vars=c('App','System','type'))
+
+# log scale
+ma$value = log10(ma$value)
+
 ma$System = paste(as.character(ma$System), ma$type, sep='')
 ma = ma[,!(names(ma) %in% 'type')]
 
@@ -46,6 +62,8 @@ ggplot(ma, aes(x=System, y=value, fill=variable), xlab="Applications", ylab="Log
        geom_bar(colour = 'black', width = .6)
 
 ggsave(filename="test.eps", width=17.5, height=6)
+
+quit()
 
 #######################
 # Median turnaround times
