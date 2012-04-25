@@ -9,27 +9,43 @@ w = read.table('wtable', sep=';', header=T)
 m = read.table('mtable', sep=';', header=T)
 b = read.table('btable', sep=';', header=T)
 
-names(w)[names(w) == 'Execution'] = 'worst_Execution'
-names(m)[names(m) == 'Execution'] = 'median_Execution'
-names(b)[names(b) == 'Execution'] = 'best_Execution'
+# want a data frame that has one column for exec and one for queueing,
+# with an id column for 'w', 'm', or 'b' for 'worst', 'median', and 'best',
+# respectively.
 
-names(w)[names(w) == 'Queuing_Delay'] = 'worst_Queueing_Delay'
-names(m)[names(m) == 'Queuing_Delay'] = 'median_Queueing_Delay'
-names(b)[names(b) == 'Queuing_Delay'] = 'best_Queueing_Delay'
+w$type = 'w'
+b$type = 'b'
+m$type = 'm'
 
-w = w[order(w$App, w$System),]
-m = m[order(m$App, m$System),]
-b = b[order(b$App, b$System),]
-
-a = merge(merge(w,m), b)
+#a = merge(merge(w,m), b)
+a = rbind(w,m,b)
+a = a[order(a$App, a$System),]
+names(a)[names(a) == 'Queuing_Delay'] = 'Queueing_Delay'
 
 nasApps = c("BT","CG","EP","LU","SP")
 otherApps = c("Sparse","SMG2000","Sweep3D","LAMMPS","UMT2k")
 appList = c(nasApps, otherApps)
-systems = c("S","H", "C")
+
+# shorten system names
+a$System = factor(toupper(substr(a$System, 1, 1)))
+
+systems = unique(a$System)
 numApps = length(appList)
 
-quit()
+ma = melt(a[,c('App','System','type','Execution','Queueing_Delay')], id.vars=c('App','System','type'))
+ma$System = paste(as.character(ma$System), ma$type, sep='')
+ma = ma[,!(names(ma) %in% 'type')]
+
+ggplot(ma, aes(x=System, y=value, fill=variable), xlab="Applications", ylab="Log seconds") +
+       facet_grid(. ~ App) +
+       scale_fill_manual(values = c('grey40','white')) +
+       opts(panel.background = theme_rect(fill = 'white', colour = NA)) +
+       opts(title = expression('Applications')) +
+       opts(legend.position = 'top') + 
+       opts(fontsize = 5) + 
+       geom_bar(colour = 'black', width = .6)
+
+ggsave(filename="test.eps", width=17.5, height=6)
 
 #######################
 # Median turnaround times
@@ -37,9 +53,9 @@ quit()
 
 
 # Data arranged in the order: Siearra,\n Hera,\n CC8
-Period = rep(systems, each = numApps)
+system = rep(systems, each = numApps)
 
-AppMatrix = c(rep(appList, 3))
+AppMatrix = rep(appList, 3)
 QueueingBySystem = c(172, 5572.5, 19)
 
 Queueing = rep(QueueingBySystem, each=numApps)
@@ -53,14 +69,14 @@ Queueing = log10(Queueing)
 Exec = log10(Exec)
 
 x <- data.frame(
-	Period,
+  	system,
 	AppMatrix,
 	Queueing,
 	Exec
 )
 
 mx <- melt(x, id.vars=1:2)
-ggplot(mx, aes(x=Period, y=value, fill=variable), xlab="Applications", ylab="Log seconds") + 
+ggplot(mx, aes(x=system, y=value, fill=variable), xlab="Applications", ylab="Log seconds") + 
   facet_grid(~AppMatrix) +
   
   scale_fill_manual(values=c("grey40","white")) +
@@ -72,6 +88,7 @@ ggplot(mx, aes(x=Period, y=value, fill=variable), xlab="Applications", ylab="Log
 
 ggsave(filename="all_median.eps", width=17.5, height=6)
 
+quit()
 
 #######################
 # Best times
