@@ -1,26 +1,53 @@
 #!/usr/bin/env Rscript
 
 library(ggplot2)
+library(reshape2)
+
+# merge tables
+
+w = read.table('wtable', sep=';', header=T)
+m = read.table('mtable', sep=';', header=T)
+b = read.table('btable', sep=';', header=T)
+
+names(w)[names(w) == 'Execution'] = 'worst_Execution'
+names(m)[names(m) == 'Execution'] = 'median_Execution'
+names(b)[names(b) == 'Execution'] = 'best_Execution'
+
+names(w)[names(w) == 'Queuing_Delay'] = 'worst_Queueing_Delay'
+names(m)[names(m) == 'Queuing_Delay'] = 'median_Queueing_Delay'
+names(b)[names(b) == 'Queuing_Delay'] = 'best_Queueing_Delay'
+
+w = w[order(w$App, w$System),]
+m = m[order(m$App, m$System),]
+b = b[order(b$App, b$System),]
+
+a = merge(merge(w,m), b)
+
+nasApps = c("BT","CG","EP","LU","SP")
+otherApps = c("Sparse","SMG2000","Sweep3D","LAMMPS","UMT2k")
+appList = c(nasApps, otherApps)
+systems = c("S","H", "C")
+numApps = length(appList)
+
+quit()
 
 #######################
 # Median turnaround times
 ########################
 
 
-library(reshape2)
-
 # Data arranged in the order: Siearra,\n Hera,\n CC8
-appList = c("BT","CG","EP","LU","SP","Sparse","SMG2000","Sweep3D","LAMMPS","UMT2k")
-systems = c("S","H", "C")
-numApps = length(appList)
 Period = rep(systems, each = numApps)
 
 AppMatrix = c(rep(appList, 3))
 QueueingBySystem = c(172, 5572.5, 19)
 
-  Queueing = rep(QueueingBySystem, each=numApps)
+Queueing = rep(QueueingBySystem, each=numApps)
 
-  Exec = c(	11.188980,4.874701,7.986189,36.028132,15.272026,36.599219,51.208608,10.143983,1,15.066262,33.979341,19.386265,16.144838,75.814457, 33.931825, 26.396798, 88.301221, 18.160790, 1, 24.521887,111.538779,48.621877,8.374356,108.159532,69.380275,25.861258,77.310697,11.176977,27.802517,1)
+Exec = c(11.188980,4.874701,7.986189,36.028132,15.272026,36.599219,51.208608,
+10.143983,1,15.066262,33.979341,19.386265,16.144838,75.814457, 33.931825, 
+26.396798, 88.301221, 18.160790, 1, 24.521887,111.538779,48.621877,8.374356,
+108.159532,69.380275,25.861258,77.310697,11.176977,27.802517,1)
 
 Queueing = log10(Queueing)
 Exec = log10(Exec)
