@@ -37,6 +37,7 @@ for(row in 1:length(a$App)){
 	 denom_sel = which(sa$App == sa$App[row] & sa$System == 'C' & sa$type == sa$type[row])
 	 sa$Queueing_Delay[row] = sa$Queueing_Delay[row] / sa$Total[denom_sel]
 	 sa$Execution[row] = sa$Execution[row] / sa$Total[denom_sel]
+	 sa$Ratio[row] = sa$Total[row] / sa$Total[denom_sel]
 }
 
 # remove CC8 times
@@ -51,7 +52,8 @@ mOther = sa[sa$App %in% otherApps,]
 
 # NAS apps
 
-mNAS = melt(mNAS[,c('App','System','type','Execution','Queueing_Delay')], id.vars=c('App','System','type'))
+#mNAS = melt(mNAS[,c('App','System','type','Execution','Queueing_Delay')], id.vars=c('App','System','type'))
+mNAS = melt(mNAS[,c('App','System','type','Ratio')], id.vars=c('App','System','type'))
 
 # log scale
 #mNAS$value = log10(mNAS$value)
