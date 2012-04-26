@@ -43,15 +43,21 @@ sa = sa[sa$System != 'C',]
 systems = unique(sa$System)
 numApps = length(appList)
 
-ma = melt(sa[,c('App','System','type','Execution','Queueing_Delay')], id.vars=c('App','System','type'))
+# split into nas apps and other apps
+mNAS = sa[sa$App %in% nasApps,]
+mOther = sa[sa$App %in% otherApps,]
+
+mNAS = melt(mNAS[,c('App','System','type','Execution','Queueing_Delay')], id.vars=c('App','System','type'))
 
 # log scale
-ma$value = log10(ma$value)
+mNAS$value = log10(mNAS$value)
 
-ma$System = paste(as.character(ma$System), ma$type, sep='')
-ma = ma[,!(names(ma) %in% 'type')]
+mNAS$System = paste(as.character(mNAS$System), mNAS$type, sep='-')
+mNAS = mNAS[,!(names(mNAS) %in% 'type')]
 
-ggplot(ma, aes(x=System, y=value, fill=variable), xlab="Applications", ylab="Log seconds") +
+ggplot(mNAS, aes(x=System, y=value, fill=variable)) +
+       ylab("Log seconds") + 
+       xlab("System-{worst, median, best}") + 
        facet_grid(. ~ App) +
        scale_fill_manual(values = c('grey40','white')) +
        opts(panel.background = theme_rect(fill = 'white', colour = NA)) +
@@ -61,6 +67,4 @@ ggplot(ma, aes(x=System, y=value, fill=variable), xlab="Applications", ylab="Log
        geom_bar(colour = 'black', width = .6)
 
 ggsave(filename="test.eps", width=17.5, height=6)
-
-quit()
 
