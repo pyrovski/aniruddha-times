@@ -47,6 +47,8 @@ numApps = length(appList)
 mNAS = sa[sa$App %in% nasApps,]
 mOther = sa[sa$App %in% otherApps,]
 
+# NAS apps
+
 mNAS = melt(mNAS[,c('App','System','type','Execution','Queueing_Delay')], id.vars=c('App','System','type'))
 
 # log scale
@@ -57,7 +59,7 @@ mNAS = mNAS[,!(names(mNAS) %in% 'type')]
 
 ggplot(mNAS, aes(x=System, y=value, fill=variable)) +
        ylab("Log seconds") + 
-       xlab("System-{worst, median, best}") + 
+       xlab("System-{Worst, Median, Best}") + 
        facet_grid(. ~ App) +
        scale_fill_manual(values = c('grey40','white')) +
        opts(panel.background = theme_rect(fill = 'white', colour = NA)) +
@@ -66,5 +68,28 @@ ggplot(mNAS, aes(x=System, y=value, fill=variable)) +
        opts(fontsize = 5) + 
        geom_bar(colour = 'black', width = .6)
 
-ggsave(filename="test.eps", width=17.5, height=6)
+ggsave(filename="NAS.eps", width=17.5, height=6)
+
+# other apps
+
+mOther = melt(mOther[,c('App','System','type','Execution','Queueing_Delay')], id.vars=c('App','System','type'))
+
+# log scale
+mOther$value = log10(mOther$value)
+
+mOther$System = paste(as.character(mOther$System), mOther$type, sep='-')
+mOther = mOther[,!(names(mOther) %in% 'type')]
+
+ggplot(mOther, aes(x=System, y=value, fill=variable)) +
+       ylab("Log seconds") + 
+       xlab("System-{Worst, Median, Best}") + 
+       facet_grid(. ~ App) +
+       scale_fill_manual(values = c('grey40','white')) +
+       opts(panel.background = theme_rect(fill = 'white', colour = NA)) +
+       opts(title = expression('Applications')) +
+       opts(legend.position = 'top') + 
+       opts(fontsize = 5) + 
+       geom_bar(colour = 'black', width = .6)
+
+ggsave(filename="other.eps", width=17.5, height=6)
 
