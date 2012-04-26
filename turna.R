@@ -21,20 +21,22 @@ a = rbind(w,m,b)
 a = a[order(a$App, a$System),]
 names(a)[names(a) == 'Queuing_Delay'] = 'Queueing_Delay'
 
+a = a[which(!is.na(a$Execution)),]
+
 nasApps = c("BT","CG","EP","LU","SP")
 otherApps = c("Sparse","SMG2000","Sweep3D","LAMMPS","UMT2k")
 appList = c(nasApps, otherApps)
 
 # shorten system names
 a$System = factor(toupper(substr(a$System, 1, 1)))
+a$Total = a$Execution + a$Queueing_Delay
 
 # scale to CC8 times
 sa = a
 for(row in 1:length(a$App)){
-	 num_sel = row
 	 denom_sel = which(sa$App == sa$App[row] & sa$System == 'C' & sa$type == sa$type[row])
-	 sa$Queueing_Delay[num_sel] = sa$Queueing_Delay[num_sel] / sa$Queueing_Delay[denom_sel]
-	 sa$Execution[num_sel] = sa$Execution[num_sel] / sa$Execution[denom_sel]
+	 sa$Queueing_Delay[row] = sa$Queueing_Delay[row] / sa$Total[denom_sel]
+	 sa$Execution[row] = sa$Execution[row] / sa$Total[denom_sel]
 }
 
 # remove CC8 times
@@ -52,7 +54,7 @@ mOther = sa[sa$App %in% otherApps,]
 mNAS = melt(mNAS[,c('App','System','type','Execution','Queueing_Delay')], id.vars=c('App','System','type'))
 
 # log scale
-mNAS$value = log10(mNAS$value)
+#mNAS$value = log10(mNAS$value)
 
 mNAS$System = paste(as.character(mNAS$System), mNAS$type, sep='-')
 mNAS = mNAS[,!(names(mNAS) %in% 'type')]
@@ -75,7 +77,7 @@ ggsave(filename="NAS.eps", width=17.5, height=6)
 mOther = melt(mOther[,c('App','System','type','Execution','Queueing_Delay')], id.vars=c('App','System','type'))
 
 # log scale
-mOther$value = log10(mOther$value)
+#mOther$value = log10(mOther$value)
 
 mOther$System = paste(as.character(mOther$System), mOther$type, sep='-')
 mOther = mOther[,!(names(mOther) %in% 'type')]
