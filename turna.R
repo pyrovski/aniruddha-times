@@ -23,9 +23,7 @@ names(a)[names(a) == 'Queuing_Delay'] = 'Queueing_Delay'
 
 a = a[which(!is.na(a$Execution)),]
 
-nasApps = c("BT","CG","EP","LU","SP")
-otherApps = c("Sparse","SMG2000","Sweep3D","LAMMPS","UMT2k")
-appList = c(nasApps, otherApps)
+a$App = factor(toupper(substr(a$App, 1, 3)))
 
 # shorten system names
 #a$System = factor(toupper(substr(a$System, 1, 1)))
@@ -44,18 +42,11 @@ for(row in 1:length(a$App)){
 sa = sa[sa$System != 'cc2.8xlarge',]
 
 systems = unique(sa$System)
-numApps = length(appList)
-
-# split into nas apps and other apps
-mNAS = sa[sa$App %in% nasApps,]
-mOther = sa[sa$App %in% otherApps,]
-
-# NAS apps
-
-#mNAS = melt(mNAS[,c('App','System','type','Execution','Queueing_Delay')], id.vars=c('App','System','type'))
 
 for(system in systems){
-    msa = melt(sa[sa$System == system,c('App','type','Ratio')], id.vars=c('App','type'))
+    msa = melt(sa[sa$System == system,c('App','type','Queueing_Delay','Execution')], id.vars=c('App','type'))
+
+    names(msa)[names(msa) == 'variable'] = 'Component'
 
     # log scale
     #msa$value = log10(msa$value)
@@ -63,17 +54,17 @@ for(system in systems){
     #msa$System = paste(as.character(msa$System), msa$type, sep='-')
     #msa = msa[,!(names(msa) %in% 'type')]
 
-    ggplot(msa, aes(x=App, y=value, fill=variable)) +
+    ggplot(msa, aes(x=App, y=value, fill=Component)) +
        ylab("Seconds") + 
        xlab("App") + 
        facet_grid(type ~ ., scales="free") +
        scale_fill_manual(values = c('grey40','white')) +
 #       opts(panel.background = theme_rect(fill = 'white', colour = NA)) +
-       opts(title = expression('Applications')) +
+       opts(title = paste('Applications on', system)) +
        opts(legend.position = 'top') + 
        opts(fontsize = 5) + 
        geom_bar(colour = 'black', width = .6)
 
-    ggsave(filename=paste(system, "eps", sep='.'), width=17.5, height=6)
+    ggsave(filename=paste(system, "eps", sep='.'), width=4, height=6)
 }
 
